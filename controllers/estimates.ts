@@ -86,6 +86,20 @@ export const postEstimate = async (req: Request, res: Response): Promise<Respons
         })
     }
 
+    if(body.fechainicio > body.fechafin) {
+        return res.status(400).send({
+            status: 'error',
+            msg: 'Fecha Inicio no debe ser Mayor a Fecha Fin'
+        })
+    }
+
+    if(body.montototal <= 0) {
+        return res.status(400).send({
+            status: 'error',
+            msg: 'Monto de Presupuesto debe ser Mayor a 0'
+        })
+    }
+
     try {
 
         const estimate = await Estimate.create(body);
@@ -144,6 +158,20 @@ export const putEstimate = async (req: Request, res: Response): Promise<Response
     if (!validate_inicio || !validate_final) {
         return res.status(400).send({
             msg: 'Los Datos son incorrectos, revisar'
+        })
+    }
+
+    if(body.fechainicio > body.fechafin) {
+        return res.status(400).send({
+            status: 'error',
+            msg: 'Fecha Inicio no debe ser Mayor a Fecha Fin'
+        })
+    }
+
+    if(body.montototal <= 0) {
+        return res.status(400).send({
+            status: 'error',
+            msg: 'Monto de Presupuesto debe ser Mayor a 0'
         })
     }
 
