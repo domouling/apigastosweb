@@ -9,11 +9,12 @@
 /node_modules
 
 # Files
-/uploads/*
-/uploads/cecos/*
-/uploads/users/*
-/uploads/estimates/*
-/uploads/expenses/*
+/uploads
+# /uploads/**
+# /uploads/cecos/*
+# /uploads/users/*
+# /uploads/estimates/*
+# /uploads/expenses/*
 
 # misc
 /.sass-cache
