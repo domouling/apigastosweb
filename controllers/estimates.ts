@@ -16,7 +16,6 @@ import { Trxcurrency } from "../models/trxcurrency";
 
 
 export const getEstimates = async (req: Request, res: Response): Promise<Response> => {
-    console.log(req.header('auth-token'));
     const estimates = await Estimate.findAll({
         include: [
             {model: Tpogasto,
