@@ -16,6 +16,8 @@ import subcategoryRoutes from "../routes/subcategory";
 import subcategory2Routes from "../routes/subcategory2";
 import estimateRoutes from "../routes/estimates";
 import expenseRoutes from "../routes/expenses";
+import projectRoutes from "../routes/projects";
+import paymentRoutes from "../routes/payments";
 
 import db from '../db/connections';
 
@@ -36,6 +38,8 @@ class Server {
         subcategories2: '/api/subcategories2',
         estimates: '/api/estimates',
         expenses: '/api/expenses',
+        projects: '/api/projects',
+        payments: '/api/payments'
     }
 
     constructor() {
@@ -94,6 +98,8 @@ class Server {
         this.app.use(this.apiPaths.subcategories2, subcategory2Routes);
         this.app.use(this.apiPaths.estimates, estimateRoutes);
         this.app.use(this.apiPaths.expenses, expenseRoutes);
+        this.app.use(this.apiPaths.projects, projectRoutes);
+        this.app.use(this.apiPaths.payments, paymentRoutes);
     }
 
     listen() {

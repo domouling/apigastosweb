@@ -38,9 +38,11 @@ Projects.init({
 });
 
 Projects.belongsTo(Provider, {
+    as: 'proveedor',
     foreignKey: 'proveedor_id'
 });
 
 Provider.hasOne(Projects, {
+    as: 'proveedor',
     foreignKey: 'proveedor_id'
 });

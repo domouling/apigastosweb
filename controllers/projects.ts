@@ -12,6 +12,7 @@ export const getProjects = async (req: Request, res: Response): Promise<Response
     const projects = await Projects.findAll({
         include: {
             model: Provider,
+            as: "proveedor",
             attributes: ['nombre']
         }
     });
@@ -29,6 +30,7 @@ export const getProject = async(req: Request, res: Response): Promise<Response> 
     const project = await Projects.findByPk(id,{
         include: {
             model: Provider,
+            as: "proveedor",
             attributes: ['nombre']
         }
     });
@@ -63,6 +65,20 @@ export const postProject = async (req: Request, res: Response): Promise<Response
     if (!validate_nombre) {
         return res.status(400).send({
             msg: 'Los Datos son incorrectos, revisar'
+        })
+    }
+
+    if(body.fechainicio > body.fechafin) {
+        return res.status(400).send({
+            status: 'error',
+            msg: 'Fecha Inicio no debe ser Mayor a Fecha Fin'
+        })
+    }
+
+    if (body.monto <= 0) {
+        return res.status(400).send({
+            status: 'error',
+            msg: 'Monto de Proyecto debe ser mayor a 0'
         })
     }
 
@@ -116,6 +132,20 @@ export const putProject = async (req: Request, res: Response): Promise<Response>
     if (!validate_nombre) {
         return res.status(400).send({
             msg: 'Los Datos son incorrectos, revisar'
+        })
+    }
+
+    if(body.fechainicio > body.fechafin) {
+        return res.status(400).send({
+            status: 'error',
+            msg: 'Fecha Inicio no debe ser Mayor a Fecha Fin'
+        })
+    }
+
+    if (body.monto <= 0) {
+        return res.status(400).send({
+            status: 'error',
+            msg: 'Monto de Proyecto debe ser mayor a 0'
         })
     }
 
