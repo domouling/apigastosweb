@@ -1,11 +1,12 @@
 import { Router } from "express";
 import multer from "../libs/multer_estimate";
-import { getEstimates, getEstimate, getTotEstimate, postEstimate, putEstimate, deleteEstimate, avatar, uploadAvatar, updateImage, deleteAvatar } from "../controllers/estimates";
+import { getEstimates, getEstimatesAct, getEstimate, getTotEstimate, postEstimate, putEstimate, deleteEstimate, avatar, uploadAvatar, updateImage, deleteAvatar } from "../controllers/estimates";
 import { TokenValidation } from '../libs/verifyToken';
  
 const router = Router();
 
-router.get('/', TokenValidation , getEstimates);
+router.get('/all/:ceco', TokenValidation , getEstimates);
+router.get('/act/all', TokenValidation , getEstimatesAct);
 router.get('/:id', TokenValidation, getEstimate);
 router.get('/totales/total', TokenValidation, getTotEstimate);
 router.post('/', TokenValidation, postEstimate);

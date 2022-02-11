@@ -15,6 +15,15 @@ export const getTpocuentas = async (req: Request, res: Response): Promise<Respon
     })
 }
 
+export const getTpocuentasAct = async (req: Request, res: Response): Promise<Response> => {
+    const tpocuentas = await Tpocuenta.findAll({where: {status: 1}});
+
+    return res.json({
+        status: 'success',
+        tpocuentas
+    })
+}
+
 
 export const getTpocuenta = async(req: Request, res: Response): Promise<Response> => {
     const {id} = req.params;

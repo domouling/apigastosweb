@@ -21,6 +21,23 @@ export const getSubcategories = async (req: Request, res: Response): Promise<Res
     })
 }
 
+export const getSubcategoriesAct = async (req: Request, res: Response): Promise<Response> => {
+    const subcategories = await Subcategory.findAll({
+        include: {
+            model: Category,
+            attributes: ['nombre']
+        },
+        where: {
+            status: 1
+        }
+    });
+
+    return res.json({
+        status: 'success',
+        subcategories
+    })
+}
+
 
 export const getSubcategory = async(req: Request, res: Response): Promise<Response> => {
     const {id} = req.params;

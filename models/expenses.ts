@@ -56,6 +56,10 @@ Expense.init({
     metodo: {
         type: DataTypes.INTEGER
     },
+    proyecto_id: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0
+    },
     monto: {
         type: DataTypes.BIGINT,
         defaultValue: 0

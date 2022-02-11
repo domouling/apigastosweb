@@ -1,6 +1,6 @@
 import { Router } from "express";
 import multer from "../libs/multer";
-import { deleteUser, getUser, getUsers, getTokeninf ,postUser, putUser, avatar ,updateImage, uploadAvatar, deleteAvatar, login, register } from "../controllers/users";
+import { deleteUser, getUser, getUsers, getUsersAct, getTokeninf ,postUser, putUser, avatar ,updateImage, uploadAvatar, deleteAvatar, login, register } from "../controllers/users";
 import { TokenValidation } from '../libs/verifyToken';
  
 const router = Router();
@@ -8,6 +8,7 @@ const router = Router();
 router.post('/login', login);
 router.post('/register', register);
 router.get('/', TokenValidation , getUsers);
+router.get('/all/act', TokenValidation, getUsersAct)
 router.get('/:id', TokenValidation, getUser);
 router.get('/token/info', TokenValidation, getTokeninf)
 router.post('/', TokenValidation, postUser);

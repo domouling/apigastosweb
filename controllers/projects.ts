@@ -2,18 +2,23 @@ import { Request, Response } from "express";
 import path from "path";
 import fs from 'fs-extra';
 import moment from "moment";
-import validator from "validator"; 
+import validator from "validator";
+import db from "../db/connections";
 
 import { Projects } from "../models/projects";
 import { Provider } from "../models/provider";
 
 
 export const getProjects = async (req: Request, res: Response): Promise<Response> => {
+    const { ceco } = req.params;
     const projects = await Projects.findAll({
         include: {
             model: Provider,
             as: "proveedor",
             attributes: ['nombre']
+        },
+        where: {
+            ceco_id: ceco
         }
     });
 
@@ -23,6 +28,23 @@ export const getProjects = async (req: Request, res: Response): Promise<Response
     })
 }
 
+export const getProjectsAct = async (req: Request, res: Response): Promise<Response> => {
+    const projects = await Projects.findAll({
+        include: {
+            model: Provider,
+            as: "proveedor",
+            attributes: ['nombre']
+        },
+        where: {
+            status: 1
+        }
+    });
+
+    return res.json({
+        status: 'success',
+        projects
+    })
+}
 
 export const getProject = async(req: Request, res: Response): Promise<Response> => {
     const {id} = req.params;
@@ -47,6 +69,74 @@ export const getProject = async(req: Request, res: Response): Promise<Response> 
         })
     }
    
+}
+
+export const getProjExpenses = async (req: Request, res: Response): Promise<Response> => {
+    const { ceco } = req.params;
+
+    const query = `SELECT
+        a.id,
+        a.nombre,
+        a.fechainicio,
+        a.fechafin,
+        a.monto,
+        IFNULL(b.pagado,0) as pagado,
+        c.nombre as proveedor,
+        a.ceco_id
+        FROM proyectos a
+    LEFT JOIN 
+        (SELECT proyecto_id, sum(monto) as pagado FROM gastos GROUP BY proyecto_id) b 
+        ON a.id = b.proyecto_id
+    LEFT JOIN proveedores c ON c.id = a.proveedor_id
+    WHERE ceco_id = ${ceco}`;
+
+    const data = await db.query(query);
+
+    if(data){
+        return res.json({
+            status: 'success',
+            projects: data[0]
+        });
+    } else {
+        return res.json({
+            status: 'error',
+            projects: []
+        })
+    }
+}
+
+export const getProjExpensesId = async (req: Request, res: Response): Promise<Response> => {
+    const { id } = req.params;
+
+    const query = `SELECT
+        a.id,
+        a.nombre,
+        a.fechainicio,
+        a.fechafin,
+        a.monto,
+        IFNULL(b.pagado,0) as pagado,
+        c.nombre as proveedor,
+        a.ceco_id
+        FROM proyectos a
+    LEFT JOIN 
+        (SELECT proyecto_id, sum(monto) as pagado FROM gastos GROUP BY proyecto_id) b 
+        ON a.id = b.proyecto_id
+    LEFT JOIN proveedores c ON c.id = a.proveedor_id
+    WHERE a.id = ${id}`;
+
+    const data = await db.query(query);
+
+    if(data){
+        return res.json({
+            status: 'success',
+            expense: data[0]
+        });
+    } else {
+        return res.json({
+            status: 'error',
+            expense: []
+        })
+    }
 }
 
 export const postProject = async (req: Request, res: Response): Promise<Response> => {
@@ -175,6 +265,22 @@ export const putProject = async (req: Request, res: Response): Promise<Response>
             msg: 'Hable con el Administrador'
         })
     }
+
+}
+
+
+export const putSaldo = async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { body } = req;
+    const query = `UPDATE proyectos SET montopag = montopag + ${body.montopag}
+    WHERE id = ${id}`;
+    const data = await db.query(query);
+
+    return res.json({
+        status: 'success',
+        msg: 'Monto Actualizado',
+        data
+    });
 
 }
 

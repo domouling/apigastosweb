@@ -13,6 +13,19 @@ export const getCtagastos = async (req: Request, res: Response): Promise<Respons
     })
 }
 
+export const getCtagastosAct = async (req: Request, res: Response): Promise<Response> => {
+    const ctagastos = await Ctagasto.findAll({
+        where: {
+            status: 1
+        }
+    });
+
+    return res.json({
+        status: 'success',
+        ctagastos
+    })
+}
+
 
 export const getCtagasto = async(req: Request, res: Response): Promise<Response> => {
     const {id} = req.params;

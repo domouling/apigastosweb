@@ -15,6 +15,19 @@ export const getCategories = async (req: Request, res: Response): Promise<Respon
     })
 }
 
+export const getCategoriesAct = async (req: Request, res: Response): Promise<Response> => {
+    const categories = await Category.findAll({
+        where: {
+            status: 1
+        }
+    });
+
+    return res.json({
+        status: 'success',
+        categories
+    })
+}
+
 
 export const getCategory = async(req: Request, res: Response): Promise<Response> => {
     const {id} = req.params;

@@ -17,7 +17,14 @@ Projects.init({
         type: DataTypes.BIGINT,
         defaultValue: 0
     },
+    montopag : {
+        type: DataTypes.BIGINT,
+        defaultValue: 0
+    },
     proveedor_id : {
+        type: DataTypes.INTEGER
+    },
+    ceco_id : {
         type: DataTypes.INTEGER
     },
     status: {
@@ -30,7 +37,7 @@ Projects.init({
     },
     updatedAt: {
         field: 'updated_at',
-        type: DATE
+        type: DataTypes.DATE
     }
 }, {
     sequelize: db,

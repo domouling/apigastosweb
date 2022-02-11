@@ -24,17 +24,21 @@ interface IPayload {
 export const login = async(req: Request, res: Response): Promise<Response> => {
     const { body } = req;
     
-    const user:any = await User.findOne({where: {email: body.email}, raw: true});
+    const user:any = await User.findOne({where: {
+        email: body.email,
+        status: 1,
+    }, raw: true});
 
+    //console.log(user);
 
-    if(!user) return res.status(400).json({ msg: 'Email o Password erroneo'});
+    if(!user) return res.status(400).json({ msg: 'Email erroneo o Usuario inactivo'});
   
     const hash = body.password;
 
     const verify = await bcryptjs.compare(hash, user.password);
     if(!verify) {
         return  res.status(400).json({
-           msg: 'Password Invalido' 
+           msg: 'Password Invalido'
         });
     }
 
@@ -43,6 +47,7 @@ export const login = async(req: Request, res: Response): Promise<Response> => {
         nombre: user.nombre,
         email: user.email,
         role: user.role,
+        ceco_id: user.ceco_id,
         imagen: user.imagen,
     }, process.env.TOKEN_SECRET || 'tokentest', {
         expiresIn: 60 * 60
@@ -50,7 +55,8 @@ export const login = async(req: Request, res: Response): Promise<Response> => {
 
     return res.header('auth-token', token).status(200).json({
         status: 'Success',
-        msg: 'Login Exitoso'
+        msg: 'Login Exitoso',
+        data: user
     })
 }
 
@@ -111,6 +117,23 @@ export const getUsers = async (req: Request, res: Response): Promise<Response> =
             attributes: ['centrocosto']
         }
     });
+
+    return res.json({
+        status: 'success',
+        users
+    })
+}
+
+export const getUsersAct = async (req: Request, res: Response): Promise<Response> => {
+    const users = await User.findAll({
+        include: {
+            model: Ceco,
+            attributes: ['centrocosto']
+        },
+        where: {
+            status: 1
+        }
+    },);
 
     return res.json({
         status: 'success',
@@ -261,6 +284,7 @@ export const postUser = async (req: Request, res: Response): Promise<Response> =
 export const putUser = async (req: Request, res: Response): Promise<Response> => {
     const { id } = req.params;
     const { body } = req;
+
     let validate_nombre:any;
     let validate_email:any;
     const today = moment().format('YYYY-MM-DD H:mm:ss');
@@ -303,7 +327,7 @@ export const putUser = async (req: Request, res: Response): Promise<Response> =>
             })
         }
 
-        if(body.password){
+        if(body.password && body.passnew){
             const salt = bcryptjs.genSaltSync();
             body.password = bcryptjs.hashSync(body.password, salt);
         }

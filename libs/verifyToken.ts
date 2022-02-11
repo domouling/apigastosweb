@@ -6,6 +6,7 @@ interface IPayload {
     nombre: string;
     email: string;
     role: string;
+    ceco_id: number;
     imagen: string;
     iat: number;
     exp: number;
@@ -42,6 +43,7 @@ export const TokenValidation = (req: Request, res: Response, next: NextFunction)
             req.nombre = payload.nombre;
             req.email = payload.email;
             req.role = payload.role;
+            req.ceco_id = payload.ceco_id;
             req.imagen = payload.imagen;
 
 

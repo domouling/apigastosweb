@@ -4,6 +4,7 @@ declare namespace Express {
         nombre: string,
         email: string,
         role: string,
+        ceco_id: number,
         imagen: string
     }
 }

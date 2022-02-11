@@ -16,6 +16,7 @@ import { Trxcurrency } from "../models/trxcurrency";
 
 
 export const getEstimates = async (req: Request, res: Response): Promise<Response> => {
+    const { ceco } = req.params;
     const estimates = await Estimate.findAll({
         include: [
             {model: Tpogasto,
@@ -25,7 +26,32 @@ export const getEstimates = async (req: Request, res: Response): Promise<Respons
             {model: Trxcurrency,
             as: "moneda",
             attributes: ['simbolo']}
-            ]
+            ],
+        where: {
+            ceco_id: ceco
+        }
+    });
+
+    return res.json({
+        status: 'success',
+        estimates
+    })
+}
+
+export const getEstimatesAct = async (req: Request, res: Response): Promise<Response> => {
+    const estimates = await Estimate.findAll({
+        include: [
+            {model: Tpogasto,
+            attributes: ['nombre']},
+            {model: Ceco,
+            attributes: ['centrocosto']},
+            {model: Trxcurrency,
+            as: "moneda",
+            attributes: ['simbolo']}
+            ],
+        where: {
+            status: 1
+        }
     });
 
     return res.json({
@@ -119,7 +145,6 @@ export const postEstimate = async (req: Request, res: Response): Promise<Respons
 }
 
 export const getTotEstimate = async (req: Request, res: Response): Promise<Response> => {
-    console.log('entre');
     const estimates = await Estimate.findAll({
         attributes: [
             [Sequelize.fn("SUM",Sequelize.col('montototal')),"montototal"],

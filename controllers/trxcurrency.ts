@@ -15,6 +15,16 @@ export const getTrxcurrencies = async (req: Request, res: Response): Promise<Res
     })
 }
 
+export const getTrxcurrenciesAct = async (req: Request, res: Response): Promise<Response> => {
+    const trxcurrencies = await Trxcurrency.findAll({where: {status: 1}});
+
+    return res.json({
+        status: 'success',
+        trxcurrencies
+    })
+}
+
+
 export const getTrxcurrency = async(req: Request, res: Response): Promise<Response> => {
     const {id} = req.params;
 

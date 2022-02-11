@@ -3,6 +3,7 @@ import path from "path";
 import fs from 'fs-extra';
 import moment from "moment";
 import validator from "validator"; 
+import db from "../db/connections";
 
 import { Payment } from "../models/payments";
 import { Ceco } from "../models/ceco";
@@ -10,19 +11,57 @@ import { User } from "../models/user";
 
 
 export const getPayments = async (req: Request, res: Response): Promise<Response> => {
+    const { ceco } = req.params;
     const payments = await Payment.findAll({
         include: [
             {model: Ceco,
             attributes: ['centrocosto']},
             {model: User,
             attributes: ['nombre']}
-            ]
+            ],
+        where: {
+            ceco_id: ceco
+        }
     });
 
     return res.json({
         status: 'success',
         payments
     })
+}
+
+export const getPaymentsAct = async (req: Request, res: Response): Promise<Response> => {
+    const payments = await Payment.findAll({
+        include: [
+            {model: Ceco,
+            attributes: ['centrocosto']},
+            {model: User,
+            attributes: ['nombre']}
+            ],
+        where: {
+            status: 1
+        }
+        },
+        );
+
+    return res.json({
+        status: 'success',
+        payments
+    })
+}
+
+export const getPaymentsMonth = async (req: Request, res: Response): Promise<Response> => {
+    const { ceco } = req.params;
+    
+    const query =  `SELECT EXTRACT(MONTH FROM fecha) AS mes, sum(monto) as monto
+    FROM abonos where ceco_id = ${ceco} and EXTRACT(YEAR FROM fecha) = 2022 GROUP BY mes`;
+
+    const data = await db.query(query);
+    
+    return res.json({
+        status: 'success',
+        payments: data[0]
+    });
 }
 
 
@@ -97,6 +136,28 @@ export const postPayment = async (req: Request, res: Response): Promise<Response
         })
     }
 
+}
+
+export const totalPayments = async (req: Request, res: Response): Promise<Response> => {
+    const { desde, hasta, ceco} = req.body;
+    
+    /* const expanses = await Estimate.findAll({
+        attributes: [
+            [Sequelize.fn("SUM",Sequelize.col('monto')),"montototal"]
+        ],
+        raw: true,
+    }); */
+    
+    const query = `Select ceco_id as ceco, SUM(monto) as montotot from
+    abonos Where ceco_id = ${ceco}
+    and fecha between '${desde + " 00:00:00"}' and '${hasta + " 23:59:59"}'`;
+
+    const data = await db.query(query);
+
+    return res.json({
+        status: 'success',
+        payments: data[0]
+    });
 }
 
 /* export const getTotEstimate = async (req: Request, res: Response): Promise<Response> => {
@@ -190,9 +251,9 @@ export const deletePayment = async (req: Request, res: Response): Promise<Respon
             })
         }
 
-        //const user = await User.destroy({where: {id}});
+        const payment = await Payment.destroy({where: {id}});
 
-        const payment = await Payment.update({status: 0},{where: {id}});
+        //const payment = await Payment.update({status: 0},{where: {id}});
 
         return res.status(200).json({
             status: 'success',

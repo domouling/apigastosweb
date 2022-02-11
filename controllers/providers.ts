@@ -15,6 +15,15 @@ export const getProviders = async (req: Request, res: Response): Promise<Respons
     })
 }
 
+export const getProvidersAct = async (req: Request, res: Response): Promise<Response> => {
+    const providers = await Provider.findAll({where: {status: 1}});
+
+    return res.json({
+        status: 'success',
+        providers
+    })
+}
+
 
 export const getProvider = async(req: Request, res: Response): Promise<Response> => {
     const {id} = req.params;

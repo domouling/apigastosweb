@@ -4,6 +4,7 @@ import path from "path";
 import fs from 'fs-extra';
 import moment from "moment";
 import validator from "validator"; 
+import db from "../db/connections";
 
 import { Tpogasto } from "../models/tpogasto";
 import { Ceco } from "../models/ceco";
@@ -18,6 +19,7 @@ import { Subcategory2 } from "../models/subcategory2";
 //const arrayImgExt = ['jpg', 'jpeg', 'bmp', 'gif', 'png'];
 
 export const getExpenses = async (req: Request, res: Response): Promise<Response> => {
+    const { ceco } = req.params;
     const expenses = await Expense.findAll({
         include: [
             {model: Category,
@@ -39,7 +41,138 @@ export const getExpenses = async (req: Request, res: Response): Promise<Response
             attributes: ['nombre']},
             {model: Subcategory2,
             attributes: ['nombre']}
-        ]
+        ],
+        where: {
+            ceco_id: ceco || 0
+        }
+    });
+
+    return res.json({
+        status: 'success',
+        expenses
+    })
+}
+
+
+export const movements = async (req: Request, res: Response): Promise<Response> => {
+    const { ceco } = req.params;
+    const { desde, hasta } = req.body;
+
+    const query = `SELECT 
+            ga.ceco_id as ceco,
+            ce.centrocosto as ceconame,
+            ga.id as idreg,
+            ga.fechainicio as fecha,
+            tg.nombre as tipogasto,
+            pr.nombre as proyecto,
+            ga.monto as monto,
+            ga.metodo as metodo,
+            ga.descripcion as descripcion,
+            ga.imagen as imagen,
+            'cargo' as tabla
+            FROM gastos ga 
+            LEFT JOIN centrocostos ce ON ga.ceco_id = ce.id
+            LEFT JOIN tipogastos tg ON ga.tipogasto_id = tg.id
+            LEFT JOIN proyectos pr ON ga.proyecto_id = pr.id
+            WHERE ga.ceco_id = ${ceco} and
+            ga.fechainicio between '${desde + " 00:00:00"}' and '${hasta + " 23:59:59"}'
+        UNION
+        SELECT 
+            py.ceco_id as ceco,
+            ce.centrocosto as ceconame,
+            py.id as idreg,
+            py.fecha as fecha,
+            '-' as tipogasto,
+            pr.nombre as proyecto,
+            py.monto as monto,
+            '-' as metodo,
+            py.descripcion as descripcion,
+            null as imagen,
+            'abono' as tabla
+            FROM abonos py 
+            LEFT JOIN centrocostos ce ON py.ceco_id = ce.id
+            LEFT JOIN proyectos pr ON py.proyecto_id = pr.id
+            WHERE py.ceco_id = ${ceco} and
+            py.fecha between '${desde + " 00:00:00"}' and '${hasta + " 23:59:59"}'
+        order by fecha`;
+
+    const data = await db.query(query);
+
+    if(data){
+        return res.json({
+            status: 'success',
+            expenses: data[0]
+        });
+    } else {
+        return res.json({
+            status: 'error',
+            expenses: []
+        })
+    }
+}
+
+export const totalExpenses = async (req: Request, res: Response): Promise<Response> => {
+    const { desde, hasta, ceco } = req.body;
+    
+    /* const expanses = await Estimate.findAll({
+        attributes: [
+            [Sequelize.fn("SUM",Sequelize.col('monto')),"montototal"]
+        ],
+        raw: true,
+    }); */
+    
+    const query = `Select ceco_id as ceco, SUM(monto) as montotot from
+    gastos Where ceco_id = ${ceco} and metodo <> 5 
+    and fechainicio between '${desde + " 00:00:00"}' and '${hasta + " 23:59:59"}'`;
+
+    const data = await db.query(query);
+
+    return res.json({
+        status: 'success',
+        expenses: data[0]
+    });
+}
+
+export const getExpensesMonth = async (req: Request, res: Response): Promise<Response> => {
+    const { ceco } = req.params;
+
+    const query =  `SELECT EXTRACT(MONTH FROM fechainicio) AS mes, sum(monto) as monto
+    FROM gastos where ceco_id = ${ceco || 0} and EXTRACT(YEAR FROM fechainicio) = 2022 GROUP BY mes`;
+
+    const data = await db.query(query);
+
+    return res.json({
+        status: 'success',
+        expenses: data[0]
+    });
+}
+
+export const getExpensesAct = async (req: Request, res: Response): Promise<Response> => {
+    const expenses = await Expense.findAll({
+        include: [
+            {model: Category,
+            attributes: ['nombre']},
+            {model: Provider,
+            as: "proveedor",
+            attributes: ['nombre']},
+            {model: Tpogasto,
+            attributes: ['nombre']},
+            {model: User,
+            attributes: ['nombre']},
+            {model: Ceco,
+            attributes: ['centrocosto']},
+            {model: Trxcurrency,
+            as: "moneda",
+            attributes: ['simbolo']},
+            {model: Subcategory,
+            as: "subcategoria",
+            attributes: ['nombre']},
+            {model: Subcategory2,
+            attributes: ['nombre']}
+        ],
+        where: {
+            status: 1
+        }
     });
 
     return res.json({
@@ -109,6 +242,13 @@ export const postExpense = async (req: Request, res: Response): Promise<Response
         })
     }
 
+    if(body.monto <= 0) {
+        return res.status(400).send({
+            status: 'error',
+            msg: 'Monto de Cargo debe ser Mayor a 0'
+        })
+    }
+
     try {
 
         const expense = await Expense.create(body);
@@ -146,6 +286,13 @@ export const putExpense = async (req: Request, res: Response): Promise<Response>
     if (!validate_inicio) {
         return res.status(400).send({
             msg: 'Los Datos son incorrectos, revisar'
+        })
+    }
+
+    if(body.monto <= 0) {
+        return res.status(400).send({
+            status: 'error',
+            msg: 'Monto de Cargo debe ser Mayor a 0'
         })
     }
 
@@ -191,9 +338,9 @@ export const deleteExpense = async (req: Request, res: Response): Promise<Respon
             })
         }
 
-        //const user = await User.destroy({where: {id}});
+        const expense = await Expense.destroy({where: {id}});
 
-        const expense = await Expense.update({status: 0},{where: {id}});
+        //const expense = await Expense.update({status: 0},{where: {id}});
 
         return res.status(200).json({
             status: 'success',

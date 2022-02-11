@@ -21,6 +21,10 @@ Payment.init({
     ceco_id: {
         type: DataTypes.INTEGER
     },
+    proyecto_id: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0
+    },
     status: {
         type: DataTypes.INTEGER,
         defaultValue: 1

@@ -15,6 +15,19 @@ export const getCecos = async (req: Request, res: Response): Promise<Response> =
     })
 }
 
+export const getCecosAct = async (req: Request, res: Response): Promise<Response> => {
+    const cecos = await Ceco.findAll({
+        where: {
+            status: 1
+        }
+    });
+
+    return res.json({
+        status: 'success',
+        cecos
+    })
+}
+
 
 export const getCeco = async(req: Request, res: Response): Promise<Response> => {
     const {id} = req.params;

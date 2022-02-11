@@ -1,11 +1,12 @@
 import { Router } from "express";
 import multer from "../libs/multer_ceco";
-import { getCecos, getCeco, postCeco, putCeco, avatar, deleteAvatar, deleteCeco, updateImage, uploadAvatar } from '../controllers/ceco';
+import { getCecos, getCecosAct, getCeco, postCeco, putCeco, avatar, deleteAvatar, deleteCeco, updateImage, uploadAvatar } from '../controllers/ceco';
 import { TokenValidation } from '../libs/verifyToken';
  
 const router = Router();
 
 router.get('/', TokenValidation , getCecos);
+router.get('/act/all', TokenValidation , getCecosAct);
 router.get('/:id', TokenValidation, getCeco);
 router.post('/', TokenValidation, postCeco);
 router.put('/:id', TokenValidation, putCeco);
