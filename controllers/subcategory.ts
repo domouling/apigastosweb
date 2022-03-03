@@ -2,10 +2,12 @@ import { Request, Response } from "express";
 import path from "path";
 import fs from 'fs-extra';
 import moment from "moment";
-import validator from "validator"; 
+import validator from "validator";
+import { v4 as uuidv4 } from "uuid";
 
 import { Subcategory } from "../models/subcategory";
 import { Category } from "../models/category";
+import { Evento } from "../models/events";
 
 export const getSubcategories = async (req: Request, res: Response): Promise<Response> => {
     const subcategories = await Subcategory.findAll({
@@ -73,6 +75,7 @@ export const getSubCat = async(req: Request, res: Response): Promise<Response> =
     })
 
     if(subcategory && subcategory.length > 0){
+
          return res.json({
             status: 'success',
             subcategory
@@ -120,7 +123,19 @@ export const postSubcategory = async (req: Request, res: Response): Promise<Resp
             })
         } */
 
+        body.id = uuidv4();
+
         const subcategory = await Subcategory.create(body);
+
+        const event = {
+            id: uuidv4(),
+            user_id: body.user_id,
+            ip_solic: req.ip,
+            solicitud: 'Post_Concepto: ' + body.id,
+            status: '200',
+            response: 'Subcategories'
+        }
+        Evento.create(event);
 
         return res.json({
             status: 'success',
@@ -171,6 +186,16 @@ export const putSubcategory = async (req: Request, res: Response): Promise<Respo
             {where: 
                 {id}
             });
+
+        const event = {
+            id: uuidv4(),
+            user_id: body.user_id,
+            ip_solic: req.ip,
+            solicitud: 'Put_Concepto: ' + id,
+            status: '200',
+            response: 'Subcategories'
+        }
+        Evento.create(event);
 
         return res.status(200).json({
             status: 'success',

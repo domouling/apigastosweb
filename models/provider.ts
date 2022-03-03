@@ -24,6 +24,11 @@ import db from "../db/connections";
 
 export class Provider extends Model {}
 Provider.init({
+    id:{
+        type: DataTypes.UUIDV4,
+        defaultValue: DataTypes.UUIDV4,
+        primaryKey: true
+    },
     nombre: {
         type: DataTypes.STRING
     },

@@ -2,9 +2,11 @@ import { Request, Response } from "express";
 import path from "path";
 import fs from 'fs-extra';
 import moment from "moment";
-import validator from "validator"; 
+import validator from "validator";
+import { v4 as uuidv4 } from "uuid";
 
 import { Tpogasto } from "../models/tpogasto";
+import { Evento } from "../models/events";
 
 export const getTpogastos = async (req: Request, res: Response): Promise<Response> => {
     const tpogastos = await Tpogasto.findAll();
@@ -16,7 +18,12 @@ export const getTpogastos = async (req: Request, res: Response): Promise<Respons
 }
 
 export const getTpogastosAct = async (req: Request, res: Response): Promise<Response> => {
-    const tpogastos = await Tpogasto.findAll({where: {status: 1}});
+    const tpogastos = await Tpogasto.findAll({
+        where: {
+            status: 1
+        },
+        order: [['nombre', 'ASC']]
+    });
 
     return res.json({
         status: 'success',
@@ -76,7 +83,19 @@ export const postTpogasto = async (req: Request, res: Response): Promise<Respons
             })
         }
 
+        body.id = uuidv4();
+
         const tpogasto = await Tpogasto.create(body);
+
+        const event = {
+            id: uuidv4(),
+            user_id: body.user_id,
+            ip_solic: req.ip,
+            solicitud: 'Post_TpGasto: ' + body.id,
+            status: '200',
+            response: 'TpGastos'
+        }
+        Evento.create(event);
 
         return res.json({
             status: 'success',
@@ -128,6 +147,18 @@ export const putTpogasto = async (req: Request, res: Response): Promise<Response
             {where: 
                 {id}
             });
+
+
+        const event = {
+            id: uuidv4(),
+            user_id: body.user_id,
+            ip_solic: req.ip,
+            solicitud: 'Put_TpGasto: ' + id,
+            status: '200',
+            response: 'TpGastos'
+        }
+        Evento.create(event);
+
 
         return res.status(200).json({
             status: 'success',

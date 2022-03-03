@@ -2,9 +2,11 @@ import { Request, Response } from "express";
 import path from "path";
 import fs from 'fs-extra';
 import moment from "moment";
-import validator from "validator"; 
+import validator from "validator";
+import { v4 as uuidv4 } from "uuid";
 
 import { Tpocuenta } from "../models/tpocuenta";
+import { Evento } from "../models/events";
 
 export const getTpocuentas = async (req: Request, res: Response): Promise<Response> => {
     const tpocuentas = await Tpocuenta.findAll();
@@ -77,7 +79,19 @@ export const postTpocuenta = async (req: Request, res: Response): Promise<Respon
             })
         } 
 
+        body.id = uuidv4();
+
         const tpocuenta = await Tpocuenta.create(body);
+
+        const event = {
+            id: uuidv4(),
+            user_id: body.user_id,
+            ip_solic: req.ip,
+            solicitud: 'Post_Tcta: ' + body.id,
+            status: '200',
+            response: 'TpCuentas'
+        }
+        Evento.create(event);
 
         return res.json({
             status: 'success',
@@ -129,6 +143,16 @@ export const putTpocuenta = async (req: Request, res: Response): Promise<Respons
             {where: 
                 {id}
             });
+
+        const event = {
+            id: uuidv4(),
+            user_id: body.user_id,
+            ip_solic: req.ip,
+            solicitud: 'Put_Tcta: ' + id,
+            status: '200',
+            response: 'TpCuentas'
+        }
+        Evento.create(event);
 
         return res.status(200).json({
             status: 'success',

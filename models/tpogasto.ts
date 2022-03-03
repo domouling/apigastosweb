@@ -24,6 +24,11 @@ import db from "../db/connections";
 
 export class Tpogasto extends Model {}
 Tpogasto.init({
+    id:{
+        type: DataTypes.UUIDV4,
+        defaultValue: DataTypes.UUIDV4,
+        primaryKey: true
+    },
     nombre: {
         unique: true,
         type: DataTypes.STRING

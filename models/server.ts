@@ -3,6 +3,9 @@ import morgan from 'morgan';
 import path from 'path';
 import bodyParser from 'body-parser';
 import cors from 'cors';
+import * as helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+import requestIp from 'request-ip';
 
 import userRoutes from '../routes/users';
 import cecoRoutes from '../routes/cecos';
@@ -71,18 +74,69 @@ class Server {
     middlewares() {
         this.app.use(morgan('dev'));
 
-        //cors
+        //requestIp
+        //this.app.use(requestIp.mw());
+
+        //Setting HELMET 
+        this.app.use(helmet.noSniff());
+        this.app.use(helmet.hidePoweredBy());
+        this.app.use(helmet.xssFilter());
+        this.app.use(helmet.frameguard({
+            action: 'deny'
+        }));
+        this.app.use(helmet.contentSecurityPolicy({
+            directives: {
+                defaultSrc: ["'none'"]
+            }
+        }))
+
+        //cors -> incluir origin 
+        const whiteList = ["*"];
+        const methods = ['GET','POST','DELETE','UPDATE','PUT'];
+
+        //TODO: Origin
+
         this.app.use(cors({
+            //origin: false,
             allowedHeaders: ['Authorization, X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Request-Method, auth-token'],
-            methods: ['GET','POST','DELETE','UPDATE','PUT','PATCH'],
+            methods: methods,
             exposedHeaders: ['auth-token']
         }));
 
         //lect body
         this.app.use(express.json());
 
+        //Verify content-type and method
+        this.app.use((req, res, next) => {
+
+            if (['POST', 'PUT'].includes(req.method) && (!req.is('application/json') && !req.is('multipart/form-data'))) {
+                res.sendStatus(400);
+            } else {
+                if(!methods.includes(req.method)){
+                    res.sendStatus(405);
+                } else {
+                    next();
+                }
+            }
+        });
+
+        //Proxy
+        //this.app.set('trust proxy', true);
+
+        //throttling
+        const limiter = rateLimit({
+            windowMs: 5 * 60 * 1000, // 5 minutos
+            max: 1000, // Limita c/IP a 100 peticiones por tiempo en windowMs
+            standardHeaders: true, // Devolver información de límite de tasa en los encabezados `RateLimit-*`
+            legacyHeaders: false, // Deshabilite los encabezados `X-RateLimit-*`
+            statusCode: 401, // Cambio de status code - 429 es por defecto
+            message: 'Request not accepted' // Mensaje de Error
+        });
+        this.app.use(limiter);
+
         //Carpeta Pub
         this.app.use(express.static('public'));
+        
     }
 
     routes() {

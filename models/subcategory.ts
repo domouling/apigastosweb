@@ -5,11 +5,16 @@ import { Category } from "./category";
 
 export class Subcategory extends Model {}
 Subcategory.init({
+    id:{
+        type: DataTypes.UUIDV4,
+        defaultValue: DataTypes.UUIDV4,
+        primaryKey: true
+    },
     nombre: {
         type: DataTypes.STRING
     },
     categoria_id : {
-        type: DataTypes.INTEGER
+        type: DataTypes.STRING
     },
     jerarquiasubcatpcpal : {
         type: DataTypes.INTEGER,

@@ -4,9 +4,11 @@ import fs from 'fs-extra';
 import moment from "moment";
 import validator from "validator";
 import db from "../db/connections";
+import { v4 as uuidv4 } from "uuid";
 
 import { Projects } from "../models/projects";
 import { Provider } from "../models/provider";
+import { Evento } from "../models/events";
 
 
 export const getProjects = async (req: Request, res: Response): Promise<Response> => {
@@ -88,7 +90,7 @@ export const getProjExpenses = async (req: Request, res: Response): Promise<Resp
         (SELECT proyecto_id, sum(monto) as pagado FROM gastos GROUP BY proyecto_id) b 
         ON a.id = b.proyecto_id
     LEFT JOIN proveedores c ON c.id = a.proveedor_id
-    WHERE ceco_id = ${ceco}`;
+    WHERE ceco_id = '${ceco}'`;
 
     const data = await db.query(query);
 
@@ -122,7 +124,7 @@ export const getProjExpensesId = async (req: Request, res: Response): Promise<Re
         (SELECT proyecto_id, sum(monto) as pagado FROM gastos GROUP BY proyecto_id) b 
         ON a.id = b.proyecto_id
     LEFT JOIN proveedores c ON c.id = a.proveedor_id
-    WHERE a.id = ${id}`;
+    WHERE a.id = '${id}'`;
 
     const data = await db.query(query);
 
@@ -141,6 +143,7 @@ export const getProjExpensesId = async (req: Request, res: Response): Promise<Re
 
 export const postProject = async (req: Request, res: Response): Promise<Response> => {
     const { body } = req;
+
     let validate_nombre:any;
 
     try {
@@ -187,7 +190,19 @@ export const postProject = async (req: Request, res: Response): Promise<Response
             })
         } */
 
+        body.id = uuidv4();
+
         const project = await Projects.create(body);
+
+        const event = {
+            id: uuidv4(),
+            user_id: body.user_id,
+            ip_solic: req.ip,
+            solicitud: 'Post_Proyecto: ' + body.id,
+            status: '200',
+            response: 'Proyectos'
+        }
+        Evento.create(event);
 
         return res.json({
             status: 'success',
@@ -253,6 +268,17 @@ export const putProject = async (req: Request, res: Response): Promise<Response>
                 {id}
             });
 
+        const event = {
+            id: uuidv4(),
+            user_id: body.user_id,
+            ip_solic: req.ip,
+            solicitud: 'Put_Proyecto: ' + id,
+            status: '200',
+            response: 'Proyectos'
+        }
+        Evento.create(event);
+
+
         return res.status(200).json({
             status: 'success',
             msg: 'Proyecto Actualizado',
@@ -297,9 +323,19 @@ export const deleteProject = async (req: Request, res: Response): Promise<Respon
             })
         }
 
-        //const user = await User.destroy({where: {id}});
+        const user = await Projects.destroy({where: {id}});
 
-        const project = await Projects.update({status: 0},{where: {id}});
+        //const project = await Projects.update({status: 0},{where: {id}});
+
+        const event = {
+            id: uuidv4(),
+            user_id: exist.getDataValue('user_id'),
+            ip_solic: req.ip,
+            solicitud: 'Del_Proyecto: ' + id,
+            status: '200',
+            response: 'Proyectos'
+        }
+        Evento.create(event);
 
         return res.status(200).json({
             status: 'success',

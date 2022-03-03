@@ -4,10 +4,12 @@ import fs from 'fs-extra';
 import moment from "moment";
 import validator from "validator"; 
 import db from "../db/connections";
+import { v4 as uuidv4 } from "uuid";
 
 import { Payment } from "../models/payments";
 import { Ceco } from "../models/ceco";
 import { User } from "../models/user";
+import { Evento } from "../models/events";
 
 
 export const getPayments = async (req: Request, res: Response): Promise<Response> => {
@@ -54,7 +56,7 @@ export const getPaymentsMonth = async (req: Request, res: Response): Promise<Res
     const { ceco } = req.params;
     
     const query =  `SELECT EXTRACT(MONTH FROM fecha) AS mes, sum(monto) as monto
-    FROM abonos where ceco_id = ${ceco} and EXTRACT(YEAR FROM fecha) = 2022 GROUP BY mes`;
+    FROM abonos where ceco_id = '${ceco}' and EXTRACT(YEAR FROM fecha) = 2022 GROUP BY mes`;
 
     const data = await db.query(query);
     
@@ -93,6 +95,7 @@ export const getPayment = async(req: Request, res: Response): Promise<Response> 
 
 export const postPayment = async (req: Request, res: Response): Promise<Response> => {
     const { body } = req;
+
     let validate_describe:any;
     let validate_fecha:any;
 
@@ -121,7 +124,19 @@ export const postPayment = async (req: Request, res: Response): Promise<Response
 
     try {
 
+        body.id = uuidv4();
+
         const payment = await Payment.create(body);
+
+        const event = {
+            id: uuidv4(),
+            user_id: body.user_id,
+            ip_solic: req.ip,
+            solicitud: 'Post_Abono: ' + body.id,
+            status: '200',
+            response: 'Payments'
+        }
+        Evento.create(event);
 
         return res.json({
             status: 'success',
@@ -149,9 +164,9 @@ export const totalPayments = async (req: Request, res: Response): Promise<Respon
     }); */
     
     const query = `Select ceco_id as ceco, SUM(monto) as montotot from
-    abonos Where ceco_id = ${ceco}
+    abonos Where ceco_id = '${ceco}'
     and fecha between '${desde + " 00:00:00"}' and '${hasta + " 23:59:59"}'`;
-
+    
     const data = await db.query(query);
 
     return res.json({
@@ -223,6 +238,16 @@ export const putPayment = async (req: Request, res: Response): Promise<Response>
                 {id}
             });
 
+            const event = {
+                id: uuidv4(),
+                user_id: body.user_id,
+                ip_solic: req.ip,
+                solicitud: 'Put_Abono: ' + id,
+                status: '200',
+                response: 'Payments'
+            }
+            Evento.create(event);
+
         return res.status(200).json({
             status: 'success',
             msg: 'Abono Actualizado',
@@ -252,6 +277,16 @@ export const deletePayment = async (req: Request, res: Response): Promise<Respon
         }
 
         const payment = await Payment.destroy({where: {id}});
+
+        const event = {
+            id: uuidv4(),
+            user_id: exist.getDataValue('user_id'),
+            ip_solic: req.ip,
+            solicitud: 'Del_Abono: ' + id,
+            status: '200',
+            response: 'Payments'
+        }
+        Evento.create(event);
 
         //const payment = await Payment.update({status: 0},{where: {id}});
 

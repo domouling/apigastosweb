@@ -30,6 +30,11 @@ import db from "../db/connections";
 
 export class Ceco extends Model {}
 Ceco.init({
+    id:{
+        type: DataTypes.UUIDV4,
+        defaultValue: DataTypes.UUIDV4,
+        primaryKey: true
+    },
     centrocosto: {
         unique: true,
         type: DataTypes.STRING

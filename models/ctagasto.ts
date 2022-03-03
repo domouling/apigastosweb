@@ -58,6 +58,11 @@ import db from "../db/connections";
 
 export class Ctagasto extends Model {}
 Ctagasto.init({
+    id:{
+        type: DataTypes.UUIDV4,
+        defaultValue: DataTypes.UUIDV4,
+        primaryKey: true
+    },
     nombre: {
         type: DataTypes.STRING
     },
@@ -78,16 +83,16 @@ Ctagasto.init({
         defaultValue: 0
     },
     tipocuenta_id: {
-        type: DataTypes.INTEGER
+        type: DataTypes.STRING
     },
     user_id: {
-        type: DataTypes.INTEGER
+        type: DataTypes.STRING
     },
     ceco_id: {
-        type: DataTypes.INTEGER
+        type: DataTypes.STRING
     },
     trxcurrency_id: {
-        type: DataTypes.INTEGER
+        type: DataTypes.STRING
     },
     subcentrocosto: {
         type: DataTypes.STRING,

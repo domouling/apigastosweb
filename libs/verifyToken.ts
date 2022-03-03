@@ -6,7 +6,7 @@ interface IPayload {
     nombre: string;
     email: string;
     role: string;
-    ceco_id: number;
+    ceco_id: string;
     imagen: string;
     iat: number;
     exp: number;

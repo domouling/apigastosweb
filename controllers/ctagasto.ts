@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import path from "path";
 import fs from 'fs-extra';
+import { v4 as uuidv4 } from "uuid";
 
 import { Ctagasto } from "../models/ctagasto";
 
@@ -61,6 +62,8 @@ export const postCtagasto = async (req: Request, res: Response): Promise<Respons
                 msg: 'Ceco ya existe'
             })
         } */
+
+        body.id = uuidv4();
 
         const ctagasto = await Ctagasto.create(body);
 

@@ -2,9 +2,11 @@ import { Request, Response } from "express";
 import path from "path";
 import fs from 'fs-extra';
 import moment from "moment";
-import validator from "validator"; 
+import validator from "validator";
+import { v4 as uuidv4 } from "uuid";
 
 import { Provider } from "../models/provider";
+import { Evento } from "../models/events";
 
 export const getProviders = async (req: Request, res: Response): Promise<Response> => {
     const providers = await Provider.findAll();
@@ -77,7 +79,19 @@ export const postProvider = async (req: Request, res: Response): Promise<Respons
             })
         }
 
+        body.id = uuidv4();
+
         const provider = await Provider.create(body);
+
+        const event = {
+            id: uuidv4(),
+            user_id: body.user_id,
+            ip_solic: req.ip,
+            solicitud: 'Post_Proveedor: ' + body.id,
+            status: '200',
+            response: 'Proveedores'
+        }
+        Evento.create(event);
 
         return res.json({
             status: 'success',
@@ -128,6 +142,16 @@ export const putProvider = async (req: Request, res: Response): Promise<Response
             {where: 
                 {id}
             });
+        
+        const event = {
+            id: uuidv4(),
+            user_id: body.user_id,
+            ip_solic: req.ip,
+            solicitud: 'Put_Proveedor: ' + id,
+            status: '200',
+            response: 'Proveedores'
+        }
+        Evento.create(event);
 
         return res.status(200).json({
             status: 'success',

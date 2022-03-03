@@ -4,6 +4,11 @@ import { Provider } from "./provider";
 
 export class Projects extends Model {}
 Projects.init({
+    id:{
+        type: DataTypes.UUIDV4,
+        defaultValue: DataTypes.UUIDV4,
+        primaryKey: true
+    },
     nombre: {
         type: DataTypes.STRING
     },
@@ -21,11 +26,14 @@ Projects.init({
         type: DataTypes.BIGINT,
         defaultValue: 0
     },
+    user_id: {
+        type: DataTypes.STRING
+    },
     proveedor_id : {
-        type: DataTypes.INTEGER
+        type: DataTypes.STRING
     },
     ceco_id : {
-        type: DataTypes.INTEGER
+        type: DataTypes.STRING
     },
     status: {
         type: DataTypes.INTEGER,

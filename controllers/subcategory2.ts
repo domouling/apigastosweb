@@ -2,11 +2,13 @@ import { Request, Response } from "express";
 import path from "path";
 import fs from 'fs-extra';
 import moment from "moment";
-import validator from "validator"; 
+import validator from "validator";
+import { v4 as uuidv4 } from "uuid";
 
 
 import { Subcategory2 } from "../models/subcategory2";
 import { Subcategory } from "../models/subcategory";
+import { Evento } from "../models/events";
 
 export const getSubcategories2 = async (req: Request, res: Response): Promise<Response> => {
     const subcategories2 = await Subcategory2.findAll({
@@ -123,7 +125,19 @@ export const postSubcategory2 = async (req: Request, res: Response): Promise<Res
             })
         } */
 
+        body.id = uuidv4();
+
         const subcategory2 = await Subcategory2.create(body);
+
+        const event = {
+            id: uuidv4(),
+            user_id: body.user_id,
+            ip_solic: req.ip,
+            solicitud: 'Post_Detalle: ' + body.id,
+            status: '200',
+            response: 'Subcategories2'
+        }
+        Evento.create(event);
 
         return res.json({
             status: 'success',
@@ -174,6 +188,16 @@ export const putSubcategory2 = async (req: Request, res: Response): Promise<Resp
             {where: 
                 {id}
             });
+
+        const event = {
+            id: uuidv4(),
+            user_id: body.user_id,
+            ip_solic: req.ip,
+            solicitud: 'Put_Detalle: ' + id,
+            status: '200',
+            response: 'Subcategories2'
+        }
+        Evento.create(event);
 
         return res.status(200).json({
             status: 'success',

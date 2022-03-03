@@ -2,9 +2,11 @@ import { Request, Response } from "express";
 import path from "path";
 import fs from 'fs-extra';
 import moment from "moment";
-import validator from "validator"; 
+import validator from "validator";
+import { v4 as uuidv4 } from "uuid";
 
 import { Category } from "../models/category";
+import { Evento } from "../models/events";
 
 export const getCategories = async (req: Request, res: Response): Promise<Response> => {
     const categories = await Category.findAll();
@@ -50,6 +52,7 @@ export const getCategory = async(req: Request, res: Response): Promise<Response>
 
 export const postCategory = async (req: Request, res: Response): Promise<Response> => {
     const { body } = req;
+
     let validate_nombre:any;
 
     try {
@@ -81,7 +84,19 @@ export const postCategory = async (req: Request, res: Response): Promise<Respons
             })
         }
 
+        body.id = uuidv4();
+
         const category = await Category.create(body);
+
+        const event = {
+            id: uuidv4(),
+            user_id: body.user_id,
+            ip_solic: req.ip,
+            solicitud: 'Post_Category: ' + body.id,
+            status: '200',
+            response: 'Categorias'
+        }
+        Evento.create(event);
 
         return res.json({
             status: 'success',
@@ -132,6 +147,16 @@ export const putCategory = async (req: Request, res: Response): Promise<Response
             {where: 
                 {id}
             });
+
+        const event = {
+            id: uuidv4(),
+            user_id: body.user_id,
+            ip_solic: req.ip,
+            solicitud: 'Put_Category: ' + body.id,
+            status: '200',
+            response: 'Categorias'
+        }
+        Evento.create(event);
 
         return res.status(200).json({
             status: 'success',

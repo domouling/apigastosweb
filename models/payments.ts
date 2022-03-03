@@ -5,6 +5,11 @@ import { User } from "./user";
 
 export class Payment extends Model {}
 Payment.init({
+    id:{
+        type: DataTypes.UUIDV4,
+        defaultValue: DataTypes.UUIDV4,
+        primaryKey: true
+    },
     descripcion: {
         type: DataTypes.STRING
     },
@@ -16,13 +21,13 @@ Payment.init({
         defaultValue: 0
     },
     user_id: {
-        type: DataTypes.INTEGER
+        type: DataTypes.STRING
     },
     ceco_id: {
-        type: DataTypes.INTEGER
+        type: DataTypes.STRING
     },
     proyecto_id: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.STRING,
         defaultValue: 0
     },
     status: {

@@ -12,8 +12,13 @@ import { User } from "./user";
 
 export class Expense extends Model {}
 Expense.init({
+    id:{
+        type: DataTypes.UUIDV4,
+        defaultValue: DataTypes.UUIDV4,
+        primaryKey: true
+    },
     categoria_id: {
-        type: DataTypes.INTEGER
+        type: DataTypes.UUIDV4
     },
     usar_ccard: {
         type: DataTypes.INTEGER,
@@ -54,10 +59,10 @@ Expense.init({
         defaultValue: null
     },
     metodo: {
-        type: DataTypes.INTEGER
+        type: DataTypes.STRING
     },
     proyecto_id: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.STRING,
         defaultValue: 0
     },
     monto: {
@@ -73,25 +78,25 @@ Expense.init({
         defaultValue: null
     },
     proveedor_id: {
-        type: DataTypes.INTEGER
+        type: DataTypes.STRING
     },
     tipogasto_id: {
-        type: DataTypes.INTEGER
+        type: DataTypes.STRING
     },
     user_id: {
-        type: DataTypes.INTEGER
+        type: DataTypes.STRING
     },
     ceco_id: {
-        type: DataTypes.INTEGER
+        type: DataTypes.STRING
     },
     trxcurrency_id: {
-        type: DataTypes.INTEGER
+        type: DataTypes.STRING
     },
     subcategoria2_id : {
-        type: DataTypes.INTEGER
+        type: DataTypes.STRING
     },
     subcategoria_id : {
-        type: DataTypes.INTEGER
+        type: DataTypes.STRING
     },
     unidadnegocio: {
         type: DataTypes.STRING,

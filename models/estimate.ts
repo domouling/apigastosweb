@@ -6,6 +6,11 @@ import { Trxcurrency } from "./trxcurrency";
 
 export class Estimate extends Model {}
 Estimate.init({
+    id:{
+        type: DataTypes.UUIDV4,
+        defaultValue: DataTypes.UUIDV4,
+        primaryKey: true
+    },
     fechainicio: {
         type: DataTypes.DATE
     },
@@ -40,10 +45,10 @@ Estimate.init({
         type: DataTypes.INTEGER
     },
     ceco_id: {
-        type: DataTypes.INTEGER
+        type: DataTypes.STRING
     },
     trxcurrency_id: {
-        type: DataTypes.INTEGER
+        type: DataTypes.STRING
     },
     unidadnegocio: {
         type: DataTypes.STRING,

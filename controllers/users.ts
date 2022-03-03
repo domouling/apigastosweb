@@ -4,11 +4,14 @@ import bcryptjs from 'bcryptjs';
 import path from "path";
 import fs from 'fs-extra';
 import moment from "moment";
+import { v4 as uuidv4 } from "uuid";
+import requestIp from 'request-ip';
 
 import jwt, { TokenExpiredError, verify } from "jsonwebtoken";
 
 import { User } from "../models/user";
 import { Ceco } from "../models/ceco";
+import { Evento } from "../models/events";
 
 interface IPayload {
     _id: any;
@@ -53,6 +56,19 @@ export const login = async(req: Request, res: Response): Promise<Response> => {
         expiresIn: 60 * 60
     });
 
+    user.password = undefined;
+
+    //Event
+    const event = {
+        id: uuidv4(),
+        user_id: user.id,
+        ip_solic: req.ip,
+        solicitud: 'Login',
+        status: '200',
+        response: 'user'
+    }
+    Evento.create(event);
+
     return res.header('auth-token', token).status(200).json({
         status: 'Success',
         msg: 'Login Exitoso',
@@ -83,6 +99,8 @@ export const register = async(req: Request, res: Response): Promise<Response> =>
 
         const salt = bcryptjs.genSaltSync();
         body.password = bcryptjs.hashSync(body.password, salt);
+
+        body.id = uuidv4();
 
         const user = await User.create(body);
         
@@ -115,9 +133,13 @@ export const getUsers = async (req: Request, res: Response): Promise<Response> =
         include: {
             model: Ceco,
             attributes: ['centrocosto']
+        },
+        attributes: {
+            exclude: ['password']
         }
     });
 
+    
     return res.json({
         status: 'success',
         users
@@ -132,6 +154,9 @@ export const getUsersAct = async (req: Request, res: Response): Promise<Response
         },
         where: {
             status: 1
+        },
+        attributes: {
+            exclude: ['password']
         }
     },);
 
@@ -196,7 +221,11 @@ export const getTokeninf = (req: Request, res: Response) => {
 export const getUser = async(req: Request, res: Response): Promise<Response> => {
     const {id} = req.params;
 
-    const user = await User.findByPk(id);
+    const user = await User.findByPk(id,{
+        attributes: {
+            exclude: ['password']
+        }
+    });
 
     if(user){
          return res.json({
@@ -220,7 +249,6 @@ export const postUser = async (req: Request, res: Response): Promise<Response> =
     let validate_repass:any;
     const today = moment().format('YYYY-MM-DD H:mm:ss');
     body.ultimasesion = today;
-    console.log(body);
 
     try {
 
@@ -264,7 +292,19 @@ export const postUser = async (req: Request, res: Response): Promise<Response> =
         const salt = bcryptjs.genSaltSync();
         body.password = bcryptjs.hashSync(body.password, salt);
 
+        body.id = uuidv4();
+
         const user = await User.create(body);
+
+        const event = {
+            id: uuidv4(),
+            user_id: body.admin_id,
+            ip_solic: req.ip,
+            solicitud: 'Post_User: ' + body.id,
+            status: '200',
+            response: 'Usuarios'
+        }
+        Evento.create(event);
 
         return res.json({
             status: 'success',
@@ -337,6 +377,16 @@ export const putUser = async (req: Request, res: Response): Promise<Response> =>
                 {id}
             });
 
+        const event = {
+            id: uuidv4(),
+            user_id: body.admin_id,
+            ip_solic: req.ip,
+            solicitud: 'Put_User: ' + id,
+            status: '200',
+            response: 'Usuarios'
+        }
+        Evento.create(event);
+
         return res.status(200).json({
             status: 'success',
             msg: 'Usuario Actualizado',
@@ -395,7 +445,7 @@ export const avatar = (req: Request, res: Response) => {
 }
 
 export const uploadAvatar = (req: Request, res: Response) => {
-    console.log(req);
+
     /* console.log(req.body);
     console.log(req.file); */
 

@@ -52,8 +52,8 @@ import { Ceco } from "./ceco";
 export class User extends Model {}
 User.init({
     id:{
-        type: DataTypes.INTEGER,
-        autoIncrement: true,
+        type: DataTypes.UUIDV4,
+        defaultValue: DataTypes.UUIDV4,
         primaryKey: true
     },
     nombre: DataTypes.STRING,
@@ -74,7 +74,7 @@ User.init({
         type: DataTypes.STRING,
         defaultValue: null
     },
-    ceco_id: DataTypes.INTEGER,
+    ceco_id: DataTypes.STRING,
     ultimasesion: {
         type: DataTypes.STRING,
         defaultValue: null

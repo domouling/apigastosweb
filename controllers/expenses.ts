@@ -5,6 +5,7 @@ import fs from 'fs-extra';
 import moment from "moment";
 import validator from "validator"; 
 import db from "../db/connections";
+import { v4 as uuidv4 } from "uuid";
 
 import { Tpogasto } from "../models/tpogasto";
 import { Ceco } from "../models/ceco";
@@ -15,6 +16,7 @@ import { Provider } from "../models/provider";
 import { User } from "../models/user";
 import { Subcategory } from "../models/subcategory";
 import { Subcategory2 } from "../models/subcategory2";
+import { Evento } from "../models/events";
 
 //const arrayImgExt = ['jpg', 'jpeg', 'bmp', 'gif', 'png'];
 
@@ -66,15 +68,16 @@ export const movements = async (req: Request, res: Response): Promise<Response> 
             tg.nombre as tipogasto,
             pr.nombre as proyecto,
             ga.monto as monto,
-            ga.metodo as metodo,
+            tc.nombre as metodo,
             ga.descripcion as descripcion,
             ga.imagen as imagen,
-            'cargo' as tabla
+            'Cargo' as tabla
             FROM gastos ga 
+            LEFT JOIN tipocuenta tc ON ga.metodo = tc.id
             LEFT JOIN centrocostos ce ON ga.ceco_id = ce.id
             LEFT JOIN tipogastos tg ON ga.tipogasto_id = tg.id
             LEFT JOIN proyectos pr ON ga.proyecto_id = pr.id
-            WHERE ga.ceco_id = ${ceco} and
+            WHERE ga.ceco_id = '${ceco}' and
             ga.fechainicio between '${desde + " 00:00:00"}' and '${hasta + " 23:59:59"}'
         UNION
         SELECT 
@@ -88,11 +91,11 @@ export const movements = async (req: Request, res: Response): Promise<Response> 
             '-' as metodo,
             py.descripcion as descripcion,
             null as imagen,
-            'abono' as tabla
+            'Abono' as tabla
             FROM abonos py 
             LEFT JOIN centrocostos ce ON py.ceco_id = ce.id
             LEFT JOIN proyectos pr ON py.proyecto_id = pr.id
-            WHERE py.ceco_id = ${ceco} and
+            WHERE py.ceco_id = '${ceco}' and
             py.fecha between '${desde + " 00:00:00"}' and '${hasta + " 23:59:59"}'
         order by fecha`;
 
@@ -113,6 +116,7 @@ export const movements = async (req: Request, res: Response): Promise<Response> 
 
 export const totalExpenses = async (req: Request, res: Response): Promise<Response> => {
     const { desde, hasta, ceco } = req.body;
+
     
     /* const expanses = await Estimate.findAll({
         attributes: [
@@ -122,8 +126,9 @@ export const totalExpenses = async (req: Request, res: Response): Promise<Respon
     }); */
     
     const query = `Select ceco_id as ceco, SUM(monto) as montotot from
-    gastos Where ceco_id = ${ceco} and metodo <> 5 
+    gastos Where ceco_id = '${ceco}' and metodo <> 5 
     and fechainicio between '${desde + " 00:00:00"}' and '${hasta + " 23:59:59"}'`;
+
 
     const data = await db.query(query);
 
@@ -137,7 +142,7 @@ export const getExpensesMonth = async (req: Request, res: Response): Promise<Res
     const { ceco } = req.params;
 
     const query =  `SELECT EXTRACT(MONTH FROM fechainicio) AS mes, sum(monto) as monto
-    FROM gastos where ceco_id = ${ceco || 0} and EXTRACT(YEAR FROM fechainicio) = 2022 GROUP BY mes`;
+    FROM gastos where ceco_id = '${ceco || 0}' and EXTRACT(YEAR FROM fechainicio) = 2022 GROUP BY mes`;
 
     const data = await db.query(query);
 
@@ -250,8 +255,20 @@ export const postExpense = async (req: Request, res: Response): Promise<Response
     }
 
     try {
+        body.id = uuidv4();
 
         const expense = await Expense.create(body);
+
+        //Event
+        const event = {
+            id: uuidv4(),
+            user_id: body.user_id,
+            ip_solic: req.ip,
+            solicitud: 'Post_Gasto: ' + body.id,
+            status: '200',
+            response: 'Expenses'
+        }
+        Evento.create(event);
 
         return res.json({
             status: 'success',
@@ -310,6 +327,17 @@ export const putExpense = async (req: Request, res: Response): Promise<Response>
                 {id}
             });
 
+        //Event
+        const event = {
+            id: uuidv4(),
+            user_id: body.user_id,
+            ip_solic: req.ip,
+            solicitud: 'Put_Gasto: ' + id,
+            status: '200',
+            response: 'Expenses'
+        }
+        Evento.create(event);
+
         return res.status(200).json({
             status: 'success',
             msg: 'Gasto Actualizado',
@@ -330,17 +358,28 @@ export const deleteExpense = async (req: Request, res: Response): Promise<Respon
     const { id } = req.params;
 
     try {
+
         const exist = await Expense.findByPk(id);
+
         if(!exist) {
             return res.status(400).json({
                 status: 'error',
                 msg: 'Gasto no existe'
             })
         }
-
         const expense = await Expense.destroy({where: {id}});
 
         //const expense = await Expense.update({status: 0},{where: {id}});
+
+        const event = {
+            id: uuidv4(),
+            user_id: exist.getDataValue('user_id'),
+            ip_solic: req.ip,
+            solicitud: 'Del_Gasto: ' + id,
+            status: '200',
+            response: 'Expenses'
+        }
+        Evento.create(event);
 
         return res.status(200).json({
             status: 'success',
@@ -370,7 +409,6 @@ export const avatar = (req: Request, res: Response) => {
 }
 
 export const uploadAvatar = (req: Request, res: Response) => {
-    
     return res.status(200).json({
         status: 'success',
         msg: 'Archivo Subido',

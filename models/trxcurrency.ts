@@ -31,6 +31,11 @@ import db from "../db/connections";
 
 export class Trxcurrency extends Model {}
 Trxcurrency.init({
+    id:{
+        type: DataTypes.UUIDV4,
+        defaultValue: DataTypes.UUIDV4,
+        primaryKey: true
+    },
     isocode: {
         unique: true,
         type: DataTypes.STRING

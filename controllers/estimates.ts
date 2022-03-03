@@ -3,7 +3,8 @@ import bcryptjs from 'bcryptjs';
 import path from "path";
 import fs from 'fs-extra';
 import moment from "moment";
-import validator from "validator"; 
+import validator from "validator";
+import { v4 as uuidv4 } from "uuid";
 
 import Sequelize, { fn } from "sequelize";
 
@@ -126,6 +127,8 @@ export const postEstimate = async (req: Request, res: Response): Promise<Respons
     }
 
     try {
+
+        body.id = uuidv4();
 
         const estimate = await Estimate.create(body);
 

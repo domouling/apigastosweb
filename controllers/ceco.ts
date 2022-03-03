@@ -2,9 +2,11 @@ import { Request, Response } from "express";
 import path from "path";
 import fs from 'fs-extra';
 import moment from "moment";
-import validator from "validator"; 
+import validator from "validator";
+import { v4 as uuidv4 } from "uuid";
 
 import { Ceco } from "../models/ceco";
+import { Evento } from "../models/events";
 
 export const getCecos = async (req: Request, res: Response): Promise<Response> => {
     const cecos = await Ceco.findAll();
@@ -80,7 +82,19 @@ export const postCeco = async (req: Request, res: Response): Promise<Response> =
             })
         }
 
+        body.id = uuidv4();
+
         const ceco = await Ceco.create(body);
+
+        const event = {
+            id: uuidv4(),
+            user_id: body.user_id,
+            ip_solic: req.ip,
+            solicitud: 'Post_Ceco: ' + body.id,
+            status: '200',
+            response: 'Cecos'
+        }
+        Evento.create(event);
 
         return res.json({
             status: 'success',
@@ -131,6 +145,16 @@ export const putCeco = async (req: Request, res: Response): Promise<Response> =>
             {where: 
                 {id}
             });
+
+        const event = {
+            id: uuidv4(),
+            user_id: body.user_id,
+            ip_solic: req.ip,
+            solicitud: 'Put_Ceco: ' + id,
+            status: '200',
+            response: 'Cecos'
+        }
+        Evento.create(event);
 
         return res.status(200).json({
             status: 'success',

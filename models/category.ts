@@ -4,6 +4,11 @@ import { Subcategory } from "./subcategory";
 
 export class Category extends Model {}
 Category.init({
+    id:{
+        type: DataTypes.UUIDV4,
+        defaultValue: DataTypes.UUIDV4,
+        primaryKey: true
+    },
     jerarquia: {
         type: DataTypes.INTEGER,
         defaultValue: 0
